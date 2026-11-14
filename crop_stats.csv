@@ -1,0 +1,5 @@
+crop,season_rain_mm,irrigation_needed_mm,heat_stress_months
+wheat,149,161,3
+rice,555,645,5
+mung bean,457,0,2
+maize,535,15,5
