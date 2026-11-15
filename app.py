@@ -22,6 +22,7 @@ hero_images = {
 
 st.markdown("""
 <style>
+
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
@@ -37,7 +38,7 @@ st.markdown("""
 }
 
 /* =========================================
-   GLOBAL ATMOSPHERE
+   GLOBAL
 ========================================= */
 
 html, body, [data-testid="stApp"],
@@ -50,21 +51,9 @@ button, input, textarea, select {
 
 .stApp {
     background:
-        radial-gradient(
-            ellipse at 5% 15%,
-            rgba(16,185,129,.19),
-            transparent 34%
-        ),
-        radial-gradient(
-            ellipse at 95% 35%,
-            rgba(190,242,100,.16),
-            transparent 32%
-        ),
-        radial-gradient(
-            ellipse at 50% 90%,
-            rgba(5,150,105,.13),
-            transparent 42%
-        ),
+        radial-gradient(ellipse at 5% 15%, rgba(16,185,129,.19), transparent 34%),
+        radial-gradient(ellipse at 95% 35%, rgba(190,242,100,.16), transparent 32%),
+        radial-gradient(ellipse at 50% 90%, rgba(5,150,105,.13), transparent 42%),
         #F5FBF6 !important;
     background-attachment: fixed !important;
 }
@@ -75,10 +64,7 @@ button, input, textarea, select {
 
 [data-testid="stHeader"],
 [data-testid="stToolbar"],
-[data-testid="stDecoration"] {
-    display: none !important;
-}
-
+[data-testid="stDecoration"],
 [data-testid="stSidebar"],
 [data-testid="stSidebarCollapseButton"],
 [data-testid="stSidebarCollapsedControl"] {
@@ -112,7 +98,7 @@ p, li, label {
 }
 
 /* =========================================
-   PREMIUM NAVBAR
+   DESKTOP NAVIGATION
 ========================================= */
 
 .st-key-agrishift_navbar {
@@ -177,7 +163,15 @@ p, li, label {
 }
 
 /* =========================================
-   CINEMATIC HERO
+   MOBILE NAVIGATION - HIDDEN ON DESKTOP
+========================================= */
+
+.st-key-agrishift_mobile_nav {
+    display: none !important;
+}
+
+/* =========================================
+   HERO
 ========================================= */
 
 .farm-hero {
@@ -267,18 +261,10 @@ p, li, label {
     display: block;
     width: fit-content;
     max-width: 100%;
-
-    background: linear-gradient(
-        100deg,
-        #FFFFFF 5%,
-        #D9F99D 48%,
-        #6EE7B7 100%
-    );
-
+    background: linear-gradient(100deg, #FFFFFF 5%, #D9F99D 48%, #6EE7B7 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-
     animation: titleReveal 1s ease-out;
 }
 
@@ -290,7 +276,7 @@ p, li, label {
 }
 
 /* =========================================
-   INTRO + SCENARIO
+   INTRO AND SCENARIO
 ========================================= */
 
 .intro-section {
@@ -343,12 +329,7 @@ p, li, label {
 [data-testid="stMetric"] {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(
-        135deg,
-        #092B27 0%,
-        #10513D 55%,
-        #167653 100%
-    ) !important;
+    background: linear-gradient(135deg, #092B27 0%, #10513D 55%, #167653 100%) !important;
     border: 1px solid rgba(190,242,100,.23) !important;
     border-radius: 20px !important;
     padding: 25px !important;
@@ -419,7 +400,7 @@ p, li, label {
 }
 
 /* =========================================
-   CHARTS
+   CHARTS AND DATAFRAMES
 ========================================= */
 
 [data-testid="stPlotlyChart"] {
@@ -504,7 +485,7 @@ p, li, label {
 }
 
 /* =========================================
-   EXPANDERS + FORMS
+   EXPANDERS AND FORMS
 ========================================= */
 
 [data-testid="stExpander"] {
@@ -547,7 +528,7 @@ p, li, label {
 }
 
 /* =========================================
-   INPUTS + SELECTS
+   INPUTS AND SELECTS
 ========================================= */
 
 [data-baseweb="select"] > div {
@@ -627,7 +608,7 @@ p, li, label {
 }
 
 /* =========================================
-   INFO CARDS
+   INFORMATION CARDS
 ========================================= */
 
 .info-card {
@@ -688,7 +669,7 @@ p, li, label {
 }
 
 /* =========================================
-   GENERAL PAGE ELEMENT GLOW
+   GENERAL ELEMENTS
 ========================================= */
 
 .intro-section,
@@ -698,10 +679,6 @@ p, li, label {
 [data-testid="stPlotlyChart"] {
     will-change: box-shadow;
 }
-
-/* =========================================
-   SECTION DIVIDERS
-========================================= */
 
 hr {
     border: none !important;
@@ -740,22 +717,82 @@ hr {
 }
 
 /* =========================================
-   RESPONSIVE
+   TABLET NAVIGATION
 ========================================= */
 
 @media (max-width: 850px) {
+
+    /* Hide desktop buttons */
     .st-key-agrishift_navbar {
-        padding: 9px 1% !important;
+        display: none !important;
     }
 
-    .st-key-agrishift_navbar button {
-        font-size: 10px !important;
-        height: 43px !important;
+    /* Show mobile dropdown */
+    .st-key-agrishift_mobile_nav {
+        display: block !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        z-index: 999999 !important;
+        background: linear-gradient(110deg, #071F1B, #10392F, #092B27) !important;
+        padding: 10px 20px 5px 20px !important;
+        box-shadow: 0 6px 25px rgba(4,35,27,.3) !important;
+    }
+
+    .st-key-agrishift_mobile_nav [data-baseweb="select"] > div {
+    background: linear-gradient(
+        135deg,
+        #123E35,
+        #08734F,
+        #10513D
+    ) !important;
+
+    border: 1px solid rgba(190,242,100,.65) !important;
+    border-radius: 13px !important;
+    min-height: 46px !important;
+
+    box-shadow:
+        0 0 8px rgba(16,185,129,.45),
+        0 0 18px rgba(16,185,129,.30),
+        0 0 30px rgba(190,242,100,.12),
+        inset 0 0 12px rgba(190,242,100,.08) !important;
+
+    transition: all .3s ease !important;
+}
+
+    .st-key-agrishift_mobile_nav label,
+    .st-key-agrishift_mobile_nav label p,
+    .st-key-agrishift_mobile_nav [data-testid="stWidgetLabel"],
+    .st-key-agrishift_mobile_nav [data-testid="stWidgetLabel"] p {
+    color: #D9F99D !important;
+    -webkit-text-fill-color: #D9F99D !important;
+    font-weight: 800 !important;
+    font-size: 13px !important;
+}
+
+    .st-key-agrishift_mobile_nav [data-baseweb="select"] *,
+    .st-key-agrishift_mobile_nav [data-baseweb="select"] input {
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+    }
+
+    .st-key-agrishift_mobile_nav [data-baseweb="select"] svg {
+        fill: #D9F99D !important;
+        color: #D9F99D !important;
+    }
+
+    .block-container {
+        padding-top: 115px !important;
+        padding-left: 28px !important;
+        padding-right: 28px !important;
     }
 
     .farm-hero {
         padding: 35px;
         min-height: 270px;
+        background-position: center;
     }
 
     .hero-title {
@@ -764,37 +801,187 @@ hr {
     }
 }
 
+/* =========================================
+   MOBILE PHONES
+========================================= */
+
 @media (max-width: 550px) {
+
     .block-container {
-        padding-top: 90px !important;
+        padding-top: 110px !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+        padding-bottom: 2rem !important;
     }
 
+    /* Hero */
     .farm-hero {
-        padding: 27px;
-        min-height: 240px;
+        padding: 25px 21px;
+        min-height: 225px;
         border-radius: 18px;
+        background-position: center;
     }
 
-    .hero-title{
-        font-size: 36px;
-        letter-spacing: -1px;
-        line-height: 1.2;
+    .hero-eyebrow {
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        padding: 7px 11px;
+    }
+
+    .hero-title {
+        font-size: clamp(34px, 9vw, 42px);
+        letter-spacing: -1.5px;
+        margin: 17px 0 12px;
     }
 
     .hero-description {
-        font-size: 14px;
+        font-size: 13px;
+        line-height: 1.7;
     }
 
+    /* Headings */
+    h1 {
+        font-size: 27px !important;
+        letter-spacing: -.7px !important;
+    }
+
+    h2 {
+        font-size: 23px !important;
+        letter-spacing: -.5px !important;
+    }
+
+    h3 {
+        font-size: 19px !important;
+        letter-spacing: -.4px !important;
+    }
+
+    h4 {
+        font-size: 16px !important;
+    }
+
+    /* Intro and scenario */
     .intro-section {
-        padding: 22px;
+        padding: 20px 17px;
+        margin-top: 16px;
+        margin-bottom: 18px;
+        border-radius: 17px;
     }
 
+    .intro-section p,
+    .scenario p {
+        font-size: 13px;
+        line-height: 1.75;
+    }
+
+    .scenario {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    /* Metrics */
     [data-testid="stMetric"] {
+        padding: 15px !important;
+        border-radius: 14px !important;
+        min-width: 0 !important;
+    }
+
+    [data-testid="stMetricValue"],
+    [data-testid="stMetricValue"] *,
+    [data-testid="stMetricValue"] div,
+    [data-testid="stMetricValue"] span {
+        font-size: clamp(17px, 4.5vw, 23px) !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    [data-testid="stMetricLabel"],
+    [data-testid="stMetricLabel"] p {
+        font-size: 11px !important;
+        line-height: 1.4 !important;
+    }
+
+    [data-testid="stMetricDelta"] {
+        font-size: 10px !important;
+    }
+
+    /* Charts */
+    [data-testid="stPlotlyChart"] {
+        padding: 5px !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+    }
+
+    [data-testid="stPlotlyChart"] > div {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    /* Information cards */
+    .info-card {
+        padding: 17px;
+        border-radius: 14px;
+        margin-bottom: 12px;
+    }
+
+    .info-card p {
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .water-highlight {
+        padding: 17px;
+        border-radius: 14px;
+    }
+
+    .water-highlight strong {
+        font-size: 16px;
+    }
+
+    .water-highlight p {
+        font-size: 13px;
+    }
+
+    /* Forms */
+    [data-testid="stForm"] {
         padding: 16px !important;
+        border-radius: 15px;
+    }
+
+    /* Buttons and inputs */
+    .stButton > button,
+    [data-testid="stFormSubmitButton"] button {
+        min-height: 43px !important;
+        font-size: 13px !important;
+    }
+
+    [data-baseweb="select"] > div {
+        min-height: 42px !important;
+    }
+
+    /* Tables */
+    [data-testid="stDataFrame"] {
+        max-width: 100% !important;
+        overflow-x: auto !important;
+    }
+
+    /* Dividers */
+    hr {
+        margin: 21px 0 !important;
+    }
+
+    /* Disable hover movement on touch screens */
+    .intro-section:hover,
+    .info-card:hover,
+    [data-testid="stMetric"]:hover,
+    [data-testid="stPlotlyChart"]:hover,
+    [data-testid="stExpander"]:hover {
+        transform: none !important;
     }
 }
 
-/* ACCESSIBILITY */
+/* =========================================
+   ACCESSIBILITY
+========================================= */
 
 @media (prefers-reduced-motion: reduce) {
     *,
@@ -804,8 +991,10 @@ hr {
         transition: none !important;
     }
 }
+
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # CUSTOM NAVBAR
@@ -822,6 +1011,7 @@ nav_sections = [
 if "agrishift_navigation" not in st.session_state:
     st.session_state.agrishift_navigation = "Dashboard"
 
+# Desktop navigation
 with st.container(key="agrishift_navbar"):
     nav_cols = st.columns(len(nav_sections), gap="small")
 
@@ -840,7 +1030,23 @@ with st.container(key="agrishift_navbar"):
                 st.session_state.agrishift_navigation = nav_section
                 st.rerun()
 
+# Mobile navigation
+with st.container(key="agrishift_mobile_nav"):
+    mobile_section = st.selectbox(
+        "Navigate to",
+        nav_sections,
+        index=nav_sections.index(
+            st.session_state.agrishift_navigation
+        ),
+        key="mobile_navigation"
+    )
+
+    if mobile_section != st.session_state.agrishift_navigation:
+        st.session_state.agrishift_navigation = mobile_section
+        st.rerun()
+
 section = st.session_state.agrishift_navigation
+
 
 st.markdown(
     f"""
