@@ -998,6 +998,7 @@ hr {
 
 
 # CUSTOM NAVBAR
+
 nav_sections = [
     "Dashboard",
     "Farmer Profile",
@@ -1011,13 +1012,34 @@ nav_sections = [
 if "agrishift_navigation" not in st.session_state:
     st.session_state.agrishift_navigation = "Dashboard"
 
+if "mobile_navigation" not in st.session_state:
+    st.session_state.mobile_navigation = (
+        st.session_state.agrishift_navigation
+    )
+
+
+# Desktop navigation callback
+def set_desktop_navigation(nav_section):
+    st.session_state.agrishift_navigation = nav_section
+    st.session_state.mobile_navigation = nav_section
+
+
+# Mobile navigation callback
+def set_mobile_navigation():
+    st.session_state.agrishift_navigation = (
+        st.session_state.mobile_navigation
+    )
+
+
 # Desktop navigation
 with st.container(key="agrishift_navbar"):
+
     nav_cols = st.columns(len(nav_sections), gap="small")
 
     for col, nav_section in zip(nav_cols, nav_sections):
+
         with col:
-            if st.button(
+            st.button(
                 nav_section,
                 key=f"nav_{nav_section}",
                 use_container_width=True,
@@ -1025,25 +1047,22 @@ with st.container(key="agrishift_navbar"):
                     "primary"
                     if st.session_state.agrishift_navigation == nav_section
                     else "secondary"
-                )
-            ):
-                st.session_state.agrishift_navigation = nav_section
-                st.rerun()
+                ),
+                on_click=set_desktop_navigation,
+                args=(nav_section,)
+            )
+
 
 # Mobile navigation
 with st.container(key="agrishift_mobile_nav"):
-    mobile_section = st.selectbox(
+
+    st.selectbox(
         "Navigate to",
         nav_sections,
-        index=nav_sections.index(
-            st.session_state.agrishift_navigation
-        ),
-        key="mobile_navigation"
+        key="mobile_navigation",
+        on_change=set_mobile_navigation
     )
 
-    if mobile_section != st.session_state.agrishift_navigation:
-        st.session_state.agrishift_navigation = mobile_section
-        st.rerun()
 
 section = st.session_state.agrishift_navigation
 
