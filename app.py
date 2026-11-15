@@ -5,23 +5,20 @@ import plotly.express as px
 
 st.set_page_config(
     page_title="AgriShift",
-    page_icon="🌱",
+    page_icon="assets/AgriShift_Orbital_Leaf_Logo-removebg-preview.png",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 hero_images = {
     "Dashboard": "https://images.unsplash.com/photo-1500382017468-9049fed747ef",
-    "Farm Constraints": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/image_data/file/25511/s960_crops-PL-1005922__3_.png",
+    "Farmer Profile": "https://assets.publishing.service.gov.uk/government/uploads/system/uploads/image_data/file/25511/s960_crops-PL-1005922__3_.png",
     "Rotation Analysis": "https://api.groenkennisnet.nl/upload_mm/e/1/7/cid5041_1756704163450_cid803991_1710932829648_20230718_DJI_0013GLB_veldmaatregelen_bionext_LR.jpg",
     "Climate Explorer": "https://leaf.imgix.net/blog/23-05-04_1.jpg?auto=format&w=auto",
     "Vegetation": "https://cdn.sanity.io/images/hvd5n54p/blog/1f19e32aee83ae6f3187b56d40a838883e9fe0e1-2200x1320.jpg",
     "Soil Health": "https://images.squarespace-cdn.com/content/v1/66f28538e3122c440d99a842/1727720443905-M4M0966X7V8UBZGHVCWF/unsplash-image-Zg0m32COaZU.jpg",
     "Data & Methodology": "https://www.zvut.cz/i/media/document_images/fotogalerie_doc/ostra/252346/PSP2_1600.png"
 }
-
-
-
 
 st.markdown("""
 <style>
@@ -811,11 +808,10 @@ hr {
 """, unsafe_allow_html=True)
 
 
-
 # CUSTOM NAVBAR
 nav_sections = [
     "Dashboard",
-    "Farm Constraints",
+    "Farmer Profile",
     "Rotation Analysis",
     "Climate Explorer",
     "Vegetation",
@@ -924,19 +920,50 @@ def load_ndvi():
 
 
 @st.cache_data
+
 def load_rotation_scores():
-    data = pd.read_csv("data/rotation_scores.csv")
+    data = pd.read_csv("data/rotation_evidence.csv")
+
+    # Clean column names
     data.columns = data.columns.str.strip()
 
-    data = data.rename(
-        columns={data.columns[0]: "Rotation"}
-    )
-
+    # Standardise the rotation column
+    data = data.rename(columns={data.columns[0]: "Rotation"})
     data["Rotation"] = data["Rotation"].str.replace(
         r"^[A-Z]:\s*", "", regex=True
     )
 
-    return data
+    # Calculate continuous scores (0–100)
+
+    # Lower irrigation requirement = better water score
+    data["Water"] = (
+        100 * (1 - data["irrigation_mm"] / 1000)
+    ).clip(0, 100)
+
+    # Fewer heat-stress months = better risk score
+    data["Risk"] = (
+        100 * (1 - data["heat_months"] / 12)
+    ).clip(0, 100)
+
+    # Soil indicator is assumed to be on a 0–5 scale
+    data["Soil"] = (
+        data["soil"] / 5 * 100
+    ).clip(0, 100)
+
+    # Income indicator is assumed to be on a 0–5 scale
+    data["Income"] = (
+        data["income"] / 5 * 100
+    ).clip(0, 100)
+
+    # Equal-weight overall score for reference
+    data["Overall"] = data[
+        ["Water", "Risk", "Soil", "Income"]
+    ].mean(axis=1)
+
+    return data[
+        ["Rotation", "Water", "Risk", "Soil", "Income", "Overall"]
+    ]
+
 
 
 def style_chart(fig, title=None):
@@ -1078,10 +1105,20 @@ if section == "Dashboard":
         )
     )
 
+    st.markdown("""
+        This chart displays average rainfall for each month across the available climate record.
+        It helps identify seasonal rainfall patterns and months when crops may depend more heavily on irrigation.
+    """)
+
+    st.markdown("""
+        This chart displays the selected climate variable across your chosen date range.
+        It helps reveal long-term trends and short-term fluctuations, although regional estimates may differ from conditions at a specific farm.
+    """)
+
     st.plotly_chart(fig, use_container_width=True)
 
 
-elif section == "Farm Constraints":
+elif section == "Farmer Profile":
 
     st.markdown("## Your Farm Profile")
     st.write(
@@ -1258,7 +1295,6 @@ elif section == "Farm Constraints":
             st.session_state.farm_constraints = {}
             st.rerun()
 
-
 elif section == "Rotation Analysis":
 
     st.markdown("## Crop Rotation Recommendations")
@@ -1366,6 +1402,11 @@ elif section == "Rotation Analysis":
             )
         )
 
+        st.markdown("""
+            This chart shows how your farming priorities are weighted after adjustments for water availability and risk preference.
+            These percentages determine how strongly water conservation, soil improvement, profitability, and risk reduction influence the final rotation rankings.
+        """)
+
         st.plotly_chart(priority_fig, use_container_width=True)
 
         rotation_scores = load_rotation_scores()
@@ -1423,11 +1464,6 @@ elif section == "Rotation Analysis":
             else:
                 rotation_scores["Preference Bonus"] = 0
 
-            rotation_scores["Recommendation Score"] = (
-                rotation_scores["Recommendation Score"]
-                + rotation_scores["Preference Bonus"]
-            ).clip(upper=100)
-
             ranked = rotation_scores.sort_values(
                 "Recommendation Score",
                 ascending=False
@@ -1480,51 +1516,12 @@ elif section == "Rotation Analysis":
                 xaxis_title="Crop Rotation"
             )
 
+            st.markdown("""
+                This chart ranks crop rotations according to their suitability scores under your selected farming priorities and saved farm profile.
+                Higher scores indicate a stronger match to the model's assumptions, not guaranteed yields or profits.
+            """)
+
             st.plotly_chart(ranking_fig, use_container_width=True)
-
-            st.markdown("### Comparing Crop Rotations")
-
-            comparison = ranked.melt(
-                id_vars=["Rotation"],
-                value_vars=["Water", "Soil", "Income", "Risk"],
-                var_name="Factor",
-                value_name="Score"
-            )
-
-            comparison["Factor"] = comparison["Factor"].map({
-                "Water": "Saving Water",
-                "Soil": "Improving Soil",
-                "Income": "Making a Profit",
-                "Risk": "Reducing Risk"
-            })
-
-            comparison_fig = px.bar(
-                comparison,
-                x="Rotation",
-                y="Score",
-                color="Factor",
-                barmode="group",
-                color_discrete_map={
-                    "Saving Water": "#23865B",
-                    "Improving Soil": "#52B788",
-                    "Making a Profit": "#F4BE36",
-                    "Reducing Risk": "#142B45"
-                }
-            )
-
-            comparison_fig = style_chart(comparison_fig)
-            comparison_fig.update_layout(
-                yaxis=dict(
-                    range=[0, 110],
-                    gridcolor="#E2E8E3",
-                    title="Score",
-                    tickfont=dict(color="#142B45"),
-                    title_font=dict(color="#142B45")
-                ),
-                xaxis_title="Crop Rotation"
-            )
-
-            st.plotly_chart(comparison_fig, use_container_width=True)
 
             st.markdown("---")
             st.markdown("## Water Requirements")
@@ -1593,6 +1590,11 @@ elif section == "Rotation Analysis":
                     title_font=dict(color="#142B45")
                 )
             )
+
+            st.markdown("""
+                This chart compares the minimum water requirements of each crop rotation across dry, normal, and wet years.
+                It helps illustrate how alternative rotations compare with Wheat-Rice, although actual irrigation needs vary with local soil, rainfall, and farming conditions.
+            """)
 
             st.plotly_chart(water_fig, use_container_width=True)
 
@@ -1671,6 +1673,11 @@ elif section == "Rotation Analysis":
                     title_font=dict(color="#142B45")
                 )
             )
+
+            st.markdown("""
+                This chart shows the estimated percentage reduction in minimum water requirements compared with Wheat-Rice, the baseline rotation.
+                Positive percentages indicate lower water requirements in the project's dataset, not guaranteed real-world irrigation savings.
+            """)
 
             st.plotly_chart(
                 savings_fig,
@@ -2042,6 +2049,11 @@ elif section == "Vegetation":
                         )
                     )
 
+                    st.markdown("""
+                        This chart tracks satellite-derived NDVI observations over the selected period.
+                        Rising or falling NDVI can indicate changes in vegetation greenness, but NDVI alone does not prove crop health or yield.
+                    """)
+
                     st.plotly_chart(
                         trend_fig,
                         use_container_width=True
@@ -2104,6 +2116,11 @@ elif section == "Vegetation":
                         )
                     )
 
+                    st.markdown("""
+                        This chart averages NDVI by calendar month across the selected observations.
+                        It helps identify recurring seasonal vegetation patterns, although crop calendars and the number of observations per month can affect the averages.
+                    """)
+
                     st.plotly_chart(
                         seasonal_fig,
                         use_container_width=True
@@ -2158,6 +2175,11 @@ elif section == "Vegetation":
                             title_font=dict(color="#142B45")
                         )
                     )
+
+                    st.markdown("""
+                        This chart compares annual average NDVI across years.
+                        It helps identify broad changes in vegetation greenness, but differences may also reflect crop type, growth stage, or observation quality.
+                    """)
 
                     st.plotly_chart(
                         yearly_fig,
@@ -2225,7 +2247,6 @@ elif section == "Vegetation":
 
     except Exception as error:
         st.error(f"Could not load the vegetation data: {error}")
-
 
 elif section == "Soil Health":
 
@@ -2328,6 +2349,11 @@ elif section == "Soil Health":
                 legend_title_text="Moisture Type"
             )
 
+            st.markdown("""
+                This chart compares NASA root-zone and surface moisture indicators over time.
+                It shows how moisture near the surface differs from deeper root-zone moisture, but these are modeled indicators—not direct measurements of every field.
+            """)
+
             st.plotly_chart(
                 soil_fig,
                 use_container_width=True
@@ -2380,6 +2406,11 @@ elif section == "Soil Health":
                 "Average Monthly Soil Moisture"
             )
 
+            st.markdown("""
+                This chart shows average root-zone and surface moisture by month.
+                It helps identify seasonal moisture patterns and potentially drier or wetter periods, without establishing exact irrigation requirements.
+            """)
+
             st.plotly_chart(
                 seasonal_soil_fig,
                 use_container_width=True
@@ -2418,6 +2449,11 @@ elif section == "Soil Health":
                 rainfall_fig,
                 "Rainfall and Root-Zone Soil Moisture"
             )
+
+            st.markdown("""
+                Each point compares rainfall with root-zone moisture for an observation date, while color represents surface moisture.
+                Patterns can suggest associations, but they do not establish that rainfall alone caused changes in soil moisture.
+            """)
 
             st.plotly_chart(
                 rainfall_fig,
@@ -2464,6 +2500,11 @@ elif section == "Soil Health":
                 "Average Soil Moisture by Year"
             )
 
+            st.markdown("""
+                This chart compares average surface and root-zone moisture by year.
+                It helps show year-to-year variability, but annual averages can hide important within-season dry periods.
+            """)
+
             st.plotly_chart(
                 annual_fig,
                 use_container_width=True
@@ -2501,13 +2542,34 @@ elif section == "Soil Health":
 
 elif section == "Data & Methodology":
 
-    st.markdown("## Data and Methodology")
+    st.markdown("## Data, Methodology & About AgriShift")
+
+    st.markdown("""
+    <div class="intro-section">
+        <h3>About AgriShift</h3>
+        <p>
+            AgriShift is an agricultural decision-support platform designed
+            to help farmers explore climate trends, vegetation conditions,
+            soil moisture patterns, and alternative crop rotations.
+            By combining NASA Earth observations with agricultural
+            analysis, it translates complex datasets into accessible
+            visualizations and comparative insights.
+        </p>
+        <p>
+            Our goal is to help farmers better understand environmental
+            conditions, explore water-efficient alternatives, and make
+            more informed decisions about agricultural planning.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("## Data Sources & Methodology")
 
     st.markdown("""
     ### Where the Data Comes From
 
     - NASA POWER monthly climate data
-    - NASA MODIS MOD13Q1 Collection 6.1 vegetation data
+    - NASA MODIS MOD13Q1 Collection 6.1 vegetation observations
     - Crop rotation scoring datasets
     - NASA soil moisture measurements
 
@@ -2519,20 +2581,22 @@ elif section == "Data & Methodology":
 
     Monthly observations include:
 
-    - **Rainfall:** How much rain falls.
-    - **Average temperature:** The average air temperature.
-    - **Maximum temperature:** The highest recorded monthly average temperature.
-    - **Minimum temperature:** The lowest recorded monthly average temperature.
-    - **Root-zone moisture:** Water in deeper soil layers.
-    - **Surface moisture:** Water near the soil surface.
-    - **Evapotranspiration:** Water lost through evaporation and plants.
+    - **Rainfall:** Precipitation received over time.
+    - **Average temperature:** Mean air temperature.
+    - **Maximum temperature:** Maximum temperature observations.
+    - **Minimum temperature:** Minimum temperature observations.
+    - **Root-zone moisture:** Moisture in deeper soil layers.
+    - **Surface moisture:** Moisture closer to the soil surface.
+    - **Evapotranspiration:** Water transferred through evaporation
+      and plant transpiration.
 
     ### Vegetation Data
 
     Vegetation is monitored using NASA MODIS NDVI observations.
 
-    The data has a 250 m spatial resolution and a 16-day observation interval.
-    A quality flag is used to identify observations marked as good quality.
+    The data has a 250 m spatial resolution and a 16-day observation
+    interval. A quality flag is used to identify observations
+    marked as good quality.
 
     ### Crop Rotation Recommendations
 
@@ -2543,25 +2607,154 @@ elif section == "Data & Methodology":
     - Profitability
     - Risk reduction
 
-    Farmers can change the importance of each factor. AgriShift then
-    calculates a suitability score for each rotation.
+    Farmers can change the importance of each factor. AgriShift
+    calculates a suitability score for each rotation based on
+    the selected priorities.
 
     ### Water Requirements
 
     The water comparison uses the minimum water required for each
-    rotation in dry, normal, and wet years. Water savings are calculated
-    against the current Wheat-Rice rotation.
+    rotation in dry, normal, and wet years. Water savings are
+    calculated against the Wheat-Rice rotation.
 
-    ### Purpose
-
-    AgriShift brings together climate, vegetation, soil moisture, and
-    crop rotation data to help farmers explore possible farming choices.
     """)
 
     st.markdown("---")
 
+    st.markdown("## Limitations, Risks & Uncertainty")
+
+    st.markdown("""
+    <div class="info-card">
+        <h4>Climate Data Limitations</h4>
+        <p>
+            NASA climate datasets provide valuable environmental
+            information, but their measurements and estimates do not
+            necessarily represent conditions at an individual farm.
+            Local rainfall, temperature, and soil conditions can
+            differ from broader datasets.
+        </p>
+    </div>
+
+    <div class="info-card">
+        <h4>Vegetation Monitoring Limitations</h4>
+        <p>
+            NDVI indicates vegetation greenness and activity, not
+            guaranteed crop health or yield. Soil background, crop
+            type, growth stage, clouds, and satellite resolution
+            can influence observations.
+        </p>
+    </div>
+
+    <div class="info-card">
+        <h4>Crop Rotation Scoring Limitations</h4>
+        <p>
+            Rotation rankings depend on the scoring dataset and the
+            weights selected by the user. A high suitability score
+            indicates a better match within this model, not a
+            guaranteed successful harvest or financial return.
+        </p>
+    </div>
+
+    <div class="info-card">
+        <h4>Local Farming Conditions</h4>
+        <p>
+            Actual results can differ because of soil composition,
+            irrigation access, groundwater availability, seed
+            varieties, fertilizer use, pests, labour, machinery,
+            weather conditions, and changing market prices.
+            These factors can cause a recommended rotation to
+            perform differently across farms.
+        </p>
+    </div>
+
+    <div class="info-card">
+        <h4>Water Requirement Estimates</h4>
+        <p>
+            Water requirement comparisons are based on the project's
+            supplied datasets and assumptions. They should not be
+            interpreted as precise irrigation prescriptions or
+            measurements of actual water consumed by every farm.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.warning(
+        "AgriShift is an exploratory decision-support tool. "
+        "Its recommendations should be evaluated alongside local "
+        "agricultural knowledge, field conditions, and professional advice."
+    )
+
+    st.markdown("---")
+
+    
+    st.markdown("## Project Documents & Demonstration")
+
+    st.write(
+        "Explore AgriShift's objectives, analytical features, "
+        "and application demonstration."
+    )
+
+    col1, col2 = st.columns(2, gap="large")
+
+    with col1:
+        st.markdown("""
+        <div class="info-card">
+            <h4>Project Presentation</h4>
+            <p>
+                An overview of AgriShift, its objectives, data sources,
+                analytical features, and potential impact.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.info("PowerPoint presentation — Coming soon")
+
+    with col2:
+        st.markdown("""
+        <div class="info-card">
+            <h4>Application Demonstration</h4>
+            <p>
+                A walkthrough of the application's interface,
+                navigation, and analytical tools.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.info("YouTube demonstration — Coming soon")
+
+    st.markdown("""
+    <div class="info-card" style="text-align: center; margin-top: 1rem;">
+        <h4>Explore AgriShift</h4>
+        <p>
+            Navigate through the application to explore climate data,
+            vegetation patterns, soil conditions, and crop rotation analysis.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+    st.markdown("---")
+    st.markdown("---")
+    st.markdown("## Meet the Team")
+
+    team_cols = st.columns(3)
+
+    team_members = [
+        "Abdul Rehman Amjad",
+        "Naad e Ali",
+        "Ayan Arshad"
+    ]
+
+    for col, member in zip(team_cols, team_members):
+        with col:
+            st.markdown(f"""
+            <div class="info-card" style="text-align: center;">
+                <h4>{member}</h4>
+            </div>
+            """, unsafe_allow_html=True)
+
     st.caption(
-        "AgriShift is a research and decision-support project. Its results "
-        "are intended to support planning and should be considered "
-        "alongside local farming knowledge and field conditions."
+        "AgriShift is a research and decision-support project. "
+        "Its results support exploration and planning rather than "
+        "providing guaranteed agricultural outcomes."
     )

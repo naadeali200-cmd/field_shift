@@ -1,4 +1,4 @@
-,Water,Risk,Soil,Income,Overall
-A: Wheat-Rice (current),0.0,0.0,0.0,100.0,20.0
-B: Wheat-Mung bean,100.0,100.0,100.0,0.0,80.0
-C: Wheat-Maize,97.67441860465117,0.0,25.0,100.0,56.80232558139535
+Rotation,Water,Risk,Soil,Income,Overall
+A: Wheat-Rice (current),19.4,51.3,30.0,70.0,42.7
+B: Wheat-Mung bean,83.9,65.9,70.0,60.0,70.0
+C: Wheat-Maize,82.4,51.3,40.0,70.0,60.9
