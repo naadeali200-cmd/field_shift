@@ -1387,7 +1387,7 @@ elif section == "Farmer Profile":
 
         with col2:
             budget = st.number_input(
-                "Available farming budget (PKR)",
+                "Available farming budget per acre (PKR)",
                 min_value=0,
                 value=50000,
                 step=5000
